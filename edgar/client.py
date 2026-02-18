@@ -10,7 +10,7 @@ from typing import Optional
 
 # EDGAR requires a user-agent header identifying your app
 HEADERS = {
-    "User-Agent": "SEC-MCP-Server contact@example.com",  # Change email to yours
+    "User-Agent": "SEC-MCP-Server kshitijmishra221@gmail.com",  # Change email to yours
     "Accept-Encoding": "gzip, deflate",
 }
 
