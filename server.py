@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from mcp.server.fastmcp import FastMCP
 from tools.search import search_company as _search_company, get_filings as _get_filings
 from tools.financials import get_financials as _get_financials, compare_companies as _compare_companies
+from tools.analysis import detect_anomalies as _detect_anomalies, get_risk_score as _get_risk_score
 
 mcp = FastMCP("sec-edgar-server")
 
@@ -80,6 +81,29 @@ def compare_companies(cik_list: list[str], metric: str = "revenue", years: int =
     """
     return _compare_companies(cik_list, metric, years)
 
+
+@mcp.tool()
+def detect_anomalies(cik_padded: str) -> str:
+    """
+    Detect unusual year-over-year changes in a company's financials.
+    Flags red flags like sudden debt spikes, revenue drops, or cash burn.
+    Severity levels: CRITICAL, WARNING, NOTABLE, NOTE.
+    Use search_company first to get the CIK number.
+    Example: detect_anomalies("0000320193") for Apple
+    """
+    return _detect_anomalies(cik_padded)
+
+
+@mcp.tool()
+def get_risk_score(cik_padded: str) -> str:
+    """
+    Calculate a proprietary financial risk score (0-10) for a company.
+    Analyzes debt levels, cash burn, revenue trends, profit margins, and more.
+    0-2 = Low Risk | 3-4 = Moderate | 5-6 = Elevated | 7-8 = High | 9-10 = Very High
+    Use search_company first to get the CIK number.
+    Example: get_risk_score("0000320193") for Apple
+    """
+    return _get_risk_score(cik_padded)
 
 if __name__ == "__main__":
     print("Starting SEC EDGAR MCP Server...", file=sys.stderr)
