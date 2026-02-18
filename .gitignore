@@ -73,3 +73,9 @@ coverage.xml
 
 # macOS
 .DS_Store
+
+# SQLite cache — no need to push
+cache.db
+
+# Secret config — never push this
+.env

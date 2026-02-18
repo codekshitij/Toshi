@@ -11,7 +11,6 @@ from typing import Optional
 
 
 # Map of common financial metrics to their XBRL concept names
-# XBRL is the tagging standard SEC uses for structured financial data
 FINANCIAL_CONCEPTS = {
     "revenue": ["Revenues", "RevenueFromContractWithCustomerExcludingAssessedTax", "SalesRevenueNet"],
     "net_income": ["NetIncomeLoss", "ProfitLoss"],
@@ -36,30 +35,41 @@ FINANCIAL_CONCEPTS = {
 
 def parse_company_search(raw: dict) -> list[dict]:
     """
-    Clean raw EDGAR search API response into a list of simple company dicts.
-    This is the only place that knows what EDGAR's search response looks like.
+    Clean raw SEC company tickers response into a filtered list of companies.
+
+    SEC's company_tickers.json format:
+    { "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}, ... }
+
+    We filter this by the search query and return clean company dicts.
+    This is the only place that knows what SEC's ticker lookup response looks like.
     """
-    hits = raw.get("hits", {}).get("hits", [])
+    query = raw.get("query", "").lower()
+    companies = raw.get("companies", {})
+
     results = []
-    seen_ciks = set()
+    for entry in companies.values():
+        name = entry.get("title", "")
+        ticker = entry.get("ticker", "")
+        cik = str(entry.get("cik_str", ""))
 
-    for hit in hits:
-        source = hit.get("_source", {})
-        cik = source.get("entity_id", "")
+        # Match against company name or ticker
+        if query in name.lower() or query.upper() == ticker.upper():
+            results.append({
+                "name": name,
+                "cik": cik,
+                "cik_padded": cik.zfill(10),
+                "tickers": [ticker] if ticker else [],
+                "exchanges": [],  # not in this endpoint, populated later if needed
+            })
 
-        if not cik or cik in seen_ciks:
-            continue
+    # Sort by exact name match first, then alphabetically
+    results.sort(key=lambda x: (
+        0 if query == x["name"].lower() else
+        1 if x["name"].lower().startswith(query) else 2,
+        x["name"]
+    ))
 
-        seen_ciks.add(cik)
-        results.append({
-            "name": source.get("display_names", ["Unknown"])[0] if source.get("display_names") else "Unknown",
-            "cik": cik.lstrip("0"),           # clean version e.g. "320193"
-            "cik_padded": cik.zfill(10),       # padded version e.g. "0000320193"
-            "tickers": source.get("tickers", []),
-            "exchanges": source.get("exchanges", []),
-        })
-
-    return results
+    return results[:10]  # return top 10 matches
 
 
 # ─────────────────────────────────────────────
@@ -115,7 +125,6 @@ def parse_company_facts(cik_padded: str, raw_facts: dict, metrics: list[str], ye
     """
     Clean raw EDGAR company facts into structured financial data.
     This is the only place that knows what EDGAR's facts response looks like.
-    Returns a clean dict with company name and all requested metric data.
     """
     return {
         "company_name": raw_facts.get("entityName", f"CIK {cik_padded}"),
@@ -140,11 +149,9 @@ def extract_metric(facts: dict, metric_name: str, last_n_years: int = 5) -> list
             continue
 
         units = us_gaap[concept].get("units", {})
-
-        # Get USD values (or shares for share-based metrics)
         values = units.get("USD") or units.get("shares") or units.get("USD/shares") or []
 
-        # Filter to annual 10-K filings only (not quarterly)
+        # Filter to annual 10-K filings only
         annual = [
             v for v in values
             if v.get("form") == "10-K" and v.get("fp") == "FY"
@@ -171,7 +178,7 @@ def extract_metric(facts: dict, metric_name: str, last_n_years: int = 5) -> list
                 for r in result
             ]
 
-    return []  # Metric not found in this company's filings
+    return []
 
 
 # ─────────────────────────────────────────────
@@ -183,7 +190,6 @@ def format_number(value: Optional[float], metric_name: str = "") -> str:
     if value is None:
         return "N/A"
 
-    # EPS and per-share metrics don't need to be scaled
     if "eps" in metric_name or "per_share" in metric_name:
         return f"${value:.2f}"
 
