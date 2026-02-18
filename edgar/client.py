@@ -18,7 +18,7 @@ BASE_URL = "https://data.sec.gov"
 SEARCH_URL = "https://efts.sec.gov"
 
 # Be polite to EDGAR - they ask for max 10 req/sec
-REQUEST_DELAY = 0.1
+REQUEST_DELAY = 0.1  
 
 
 def _get(url: str, params: dict = None) -> dict:
@@ -31,37 +31,19 @@ def _get(url: str, params: dict = None) -> dict:
     return response.json()
 
 
-def search_company(name: str) -> list[dict]:
+def search_company(name: str) -> dict:
     """
     Search for a company by name on EDGAR.
-    Returns a list of matching companies with their CIK numbers.
-
+    Returns RAW response from EDGAR — parser.py is responsible for cleaning it.
     CIK = Central Index Key, EDGAR's unique ID for every company.
     """
     data = _get(f"{SEARCH_URL}/LATEST/search-index", params={"q": f'"{name}"', "dateRange": "custom"})
 
-    # Try a simpler search if no results
+    # Try a broader search if exact match returns nothing
     if not data.get("hits", {}).get("hits"):
         data = _get(f"{SEARCH_URL}/LATEST/search-index", params={"q": name})
 
-    hits = data.get("hits", {}).get("hits", [])
-    results = []
-
-    seen_ciks = set()
-    for hit in hits:
-        source = hit.get("_source", {})
-        cik = source.get("entity_id", "")
-        if cik and cik not in seen_ciks:
-            seen_ciks.add(cik)
-            results.append({
-                "name": source.get("display_names", [name])[0] if source.get("display_names") else name,
-                "cik": cik.lstrip("0"),  # Remove leading zeros for cleaner display
-                "cik_padded": cik.zfill(10),  # EDGAR needs 10-digit padded CIK for some endpoints
-                "tickers": source.get("tickers", []),
-                "exchanges": source.get("exchanges", []),
-            })
-
-    return results
+    return data  # raw — let parser.py handle cleaning
 
 
 def get_company_submissions(cik_padded: str) -> dict:

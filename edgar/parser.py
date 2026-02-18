@@ -27,6 +27,34 @@ FINANCIAL_CONCEPTS = {
 }
 
 
+def parse_company_search(raw: dict) -> list[dict]:
+    """
+    Clean raw EDGAR search API response into a list of simple company dicts.
+    This is the only place that knows what EDGAR's search response looks like.
+    """
+    hits = raw.get("hits", {}).get("hits", [])
+    results = []
+    seen_ciks = set()
+
+    for hit in hits:
+        source = hit.get("_source", {})
+        cik = source.get("entity_id", "")
+
+        if not cik or cik in seen_ciks:
+            continue
+
+        seen_ciks.add(cik)
+        results.append({
+            "name": source.get("display_names", ["Unknown"])[0] if source.get("display_names") else "Unknown",
+            "cik": cik.lstrip("0"),           # clean version e.g. "320193"
+            "cik_padded": cik.zfill(10),       # padded version e.g. "0000320193"
+            "tickers": source.get("tickers", []),
+            "exchanges": source.get("exchanges", []),
+        })
+
+    return results
+
+
 def extract_metric(facts: dict, metric_name: str, last_n_years: int = 5) -> list[dict]:
     """
     Extract a specific financial metric from EDGAR company facts.
