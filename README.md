@@ -1,4 +1,4 @@
-# Tōshi 🗡️
+# Tōshi 
 
 > Ask questions about any public company. Get answers grounded in real SEC filings.
 
