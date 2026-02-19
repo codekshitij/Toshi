@@ -1,3 +1,5 @@
+ragPipeline.md
+RagREADME.md
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -80,3 +82,7 @@ cache.db
 # Secret config — never push this
 .env
 chroma_db/
+
+ragPipeline.md
+
+RagREADME.md

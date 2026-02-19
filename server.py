@@ -19,6 +19,8 @@ from mcp.server.fastmcp import FastMCP
 from tools.search import search_company as _search_company, get_filings as _get_filings
 from tools.financials import get_financials as _get_financials, compare_companies as _compare_companies
 from tools.analysis import detect_anomalies as _detect_anomalies, get_risk_score as _get_risk_score
+from tools.filings_qa import search_filing as _search_filing
+
 
 mcp = FastMCP("sec-edgar-server")
 

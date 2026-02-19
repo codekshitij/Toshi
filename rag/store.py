@@ -53,10 +53,10 @@ def add_chunks(chunks: list[dict]) -> None:
     # Filter out already-stored chunks
     new_chunks = [c for c in chunks if not chunk_exists(c["chunk_id"])]
     if not new_chunks:
-        print(f"All {len(chunks)} chunks already in store — skipping.")
+        print(f"All {len(chunks)} chunks already in store — skipping.", file=__import__("sys").stderr)
         return
 
-    print(f"Embedding {len(new_chunks)} new chunks...")
+    print(f"Embedding {len(new_chunks)} new chunks...", file=__import__("sys").stderr)
 
     # Embed all chunk texts in one batch — GPU processes in parallel
     texts = [c["text"] for c in new_chunks]
@@ -91,7 +91,7 @@ def add_chunks(chunks: list[dict]) -> None:
             documents=batch_texts,
         )
 
-    print(f"✓ Stored {len(new_chunks)} chunks in ChromaDB.")
+    print(f"✓ Stored {len(new_chunks)} chunks in ChromaDB.", file=__import__("sys").stderr)
 
 
 def search_mmr(query: str, cik: str = None, year: str = None,
@@ -160,9 +160,9 @@ def clear_company(cik: str) -> None:
     """
     try:
         _collection.delete(where={"cik": cik})
-        print(f"✓ Cleared all chunks for CIK {cik}.")
+        print(f"✓ Cleared all chunks for CIK {cik}.", file=__import__("sys").stderr)
     except Exception as e:
-        print(f"Warning: could not clear company {cik}: {e}")
+        print(f"Warning: could not clear company {cik}: {e}", file=__import__("sys").stderr)
 
 
 def get_stats() -> dict:

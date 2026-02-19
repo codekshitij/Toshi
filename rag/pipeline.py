@@ -112,6 +112,8 @@ def _ingest_and_store(cik_padded: str, filing_type: str, n_filings: int) -> None
     print(f"Chunked {stats['total']} chunks across {stats['by_year']}")
 
     store.add_chunks(all_chunks)
+    # Clear raw filing text from cache — already chunked and stored in ChromaDB
+    cache.clear_filing_cache(cik_padded)
 
 
 def _clean_chunks(chunks: list) -> list:

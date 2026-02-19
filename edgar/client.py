@@ -6,7 +6,9 @@ No API key required - EDGAR is a public API.
 
 import httpx
 import time
+import os
 from typing import Optional
+from pathlib import Path
 
 def _load_env():
     """
@@ -103,7 +105,8 @@ def get_filing_document(accession_number: str, cik_padded: str, filename: str) -
     accession_number format: 0000320193-23-000077 (with dashes)
     """
     acc_no_clean = accession_number.replace("-", "")
-    url = f"{SEC_URL}/Archives/edgar/data/{cik_padded}/{acc_no_clean}/{filename}"
+    cik_int = int(cik_padded)
+    url = f"{SEC_URL}/Archives/edgar/data/{cik_int}/{acc_no_clean}/{filename}"
 
     time.sleep(REQUEST_DELAY)
     response = httpx.get(url, headers=HEADERS, timeout=60)

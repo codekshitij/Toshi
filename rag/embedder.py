@@ -31,9 +31,9 @@ else:
 MODEL_NAME = "all-MiniLM-L6-v2"
 EMBEDDING_DIMENSIONS = 384
 
-print(f"Loading embedding model {MODEL_NAME} on {DEVICE.upper()}...", flush=True)
+import sys; print(f"Loading embedding model {MODEL_NAME} on {DEVICE.upper()}...", flush=True, file=__import__("sys").stderr)
 _model = SentenceTransformer(MODEL_NAME, device=DEVICE)
-print(f"Embedding model ready on {DEVICE.upper()}.", flush=True)
+print(f"Embedding model ready on {DEVICE.upper()}.", flush=True, file=__import__("sys").stderr)
 
 
 def embed_text(text: str) -> np.ndarray:

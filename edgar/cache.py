@@ -40,6 +40,12 @@ def init_db():
                 result JSON NOT NULL,
                 cached_at INTEGER NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS filing_text (
+                accession TEXT PRIMARY KEY,
+                result JSON NOT NULL,
+                cached_at INTEGER NOT NULL
+            );
         """)
 
 
@@ -73,6 +79,13 @@ def set_cached(table: str, key_col: str, key_val: str, data: dict):
             (key_val, json.dumps(data), int(time.time()))
         )
 
+def clear_filing_cache(cik_padded: str):
+    """Delete filing text cache for a company after chunking is done."""
+    with _get_connection() as conn:
+        conn.execute(
+            "DELETE FROM filing_text WHERE accession LIKE ?",
+            (f"{cik_padded}%",)
+        )
 
 # Initialize DB on import
 init_db()

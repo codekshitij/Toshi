@@ -28,9 +28,9 @@ from sentence_transformers import CrossEncoder
 # ─────────────────────────────────────────────
 RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
-print(f"Loading reranker model {RERANKER_MODEL}...", flush=True)
+print(f"Loading reranker model {RERANKER_MODEL}...", flush=True, file=__import__("sys").stderr)
 _reranker = CrossEncoder(RERANKER_MODEL)
-print("Reranker model ready.", flush=True)
+print("Reranker model ready.", flush=True, file=__import__("sys").stderr)
 
 # CRAG thresholds
 CRAG_CORRECT   = 0.7
