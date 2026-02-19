@@ -204,3 +204,12 @@ def format_number(value: Optional[float], metric_name: str = "") -> str:
         return f"{sign}${abs_val / 1_000:.2f}K"
     else:
         return f"{sign}${abs_val:.2f}"
+
+def get_parsed_company_facts(cik_padded: str, metrics: list, years: int) -> dict:
+    """
+    Fetch and parse company financial facts in one call.
+    This is what tools/financials.py calls — handles fetch + clean.
+    """
+    from edgar import client
+    raw_facts = client.get_company_facts(cik_padded)
+    return parse_company_facts(cik_padded, raw_facts, metrics, years)
