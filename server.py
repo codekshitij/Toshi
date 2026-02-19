@@ -105,6 +105,32 @@ def get_risk_score(cik_padded: str) -> str:
     """
     return _get_risk_score(cik_padded)
 
+
+@mcp.tool()
+def search_filing(cik_padded: str, query: str,
+                  filing_type: str = "10-K", years: int = 3) -> str:
+    """
+    Answer questions using actual text from SEC 10-K filings.
+    Returns relevant passages with citations (company, year, section).
+    Use search_company first to get the CIK number.
+
+    IMPORTANT — before calling this tool, rewrite the user's question
+    into formal SEC 10-K filing language. Examples:
+
+    User: "What are Apple's China risks?"
+    Rewrite: "The Company's operations in the People's Republic of China
+    are subject to political, regulatory, and economic risks including
+    potential restrictions on technology and trade."
+
+    User: "How does Tesla talk about competition?"
+    Rewrite: "The Company faces intense competition from established and
+    new market participants in the electric vehicle industry which may
+    adversely affect market share and financial results."
+
+    Pass the rewritten formal query as the query parameter.
+    """
+    return _search_filing(cik_padded, query, filing_type, years)
+
 if __name__ == "__main__":
     print("Starting SEC EDGAR MCP Server...", file=sys.stderr)
     mcp.run()

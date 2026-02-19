@@ -1,0 +1,16 @@
+# Tōshi — SEC EDGAR MCP Server
+# Install: python3 -m pip install -r requirements.txt
+
+# ─────────────────────────────────────────────
+# Phase 1 & 2 — Core
+# ─────────────────────────────────────────────
+mcp                        # MCP server framework
+httpx                      # HTTP client for EDGAR API calls
+
+# ─────────────────────────────────────────────
+# Phase 3 — RAG Pipeline
+# ─────────────────────────────────────────────
+beautifulsoup4             # HTML parsing for 10-K filing cleanup
+sentence-transformers      # Local embeddings (all-MiniLM-L6-v2)
+chromadb                   # Vector store, persists to disk
+torch                      # Required by sentence-transformers

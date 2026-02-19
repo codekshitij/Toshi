@@ -79,3 +79,4 @@ cache.db
 
 # Secret config — never push this
 .env
+chroma_db/
