@@ -45,7 +45,7 @@ def search_company(name: str) -> str:
 
 
 @mcp.tool()
-def get_filings(cik_padded: str, filing_type: str = "10-K", limit: int = 5) -> str:
+def get_filings(cik_padded: str, filing_types: list[str] = ["10-K", "10-Q"], years: int = 3) -> str:
     """
     List recent SEC filings for a company.
     cik_padded: 10-digit CIK from search_company (e.g. '0000320193' for Apple)
@@ -53,7 +53,7 @@ def get_filings(cik_padded: str, filing_type: str = "10-K", limit: int = 5) -> s
     limit: how many filings to return (default 5)
     Use search_company first to get the CIK.
     """
-    return _get_filings(cik_padded, filing_type, limit)
+    return _get_filings(cik_padded, filing_types, years)
 
 
 @mcp.tool()
@@ -110,7 +110,7 @@ def get_risk_score(cik_padded: str) -> str:
 
 @mcp.tool()
 def search_filing(cik_padded: str, query: str,
-                  filing_type: str = "10-K", years: int = 3) -> str:
+                  filing_types: list[str], years: int = 3, quarters: list[str] = None) -> str:
     """
     Answer questions using actual text from SEC 10-K filings.
     Returns relevant passages with citations (company, year, section).

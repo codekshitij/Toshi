@@ -94,7 +94,7 @@ def add_chunks(chunks: list[dict]) -> None:
     print(f"✓ Stored {len(new_chunks)} chunks in ChromaDB.", file=__import__("sys").stderr)
 
 
-def search_mmr(query: str, cik: str = None, year: str = None,
+def search_mmr(query: str, cik: str = None, year: str = None, quarter: str = None,
                n_results: int = 20, mmr_lambda: float = 0.7) -> list[dict]:
     """
     MMR search — returns diverse, relevant chunks for a query.
@@ -110,7 +110,8 @@ def search_mmr(query: str, cik: str = None, year: str = None,
         mmr_lambda:  0.7 = 70% relevance, 30% diversity (per spec)
     """
     # Build ChromaDB filter
-    where = _build_filter(cik, year)
+    where = _build_filter(cik, year, quarter)
+
 
     # Step 1 — get top 50 candidates by raw similarity
     n_candidates = min(50, _collection.count())
@@ -180,13 +181,18 @@ def get_stats() -> dict:
 # Internal helpers
 # ─────────────────────────────────────────────
 
-def _build_filter(cik: str = None, year: str = None) -> dict:
+def _build_filter(cik: str = None, year: str = None, quarter: str = None) -> dict:
     """Build ChromaDB where filter from optional cik/year."""
     conditions = []
     if cik:
         conditions.append({"cik": {"$eq": cik}})
     if year:
         conditions.append({"year": {"$eq": year}})
+
+
+    if quarter:
+        conditions.append({"quarter": {"$eq": quarter}})
+
 
     if len(conditions) == 0:
         return {}

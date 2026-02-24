@@ -24,39 +24,29 @@ SECTION_LABELS = {
 
 
 def search_filing(cik_padded: str, query: str,
-                  filing_type: str = "10-K", years: int = 3) -> str:
+                  filing_types: list[str], years: int = 3, quarters: list[str] = None) -> str:
     """
-    Answer a question using actual text from SEC 10-K filings.
-    Returns relevant passages with citations (company, year, section).
+    Answer a question using actual text from SEC filings.
+    Returns relevant passages with citations (company, year, filing type, section).
     Use search_company first to get the CIK number.
 
     IMPORTANT — before calling this tool, rewrite the user's question
-    into formal SEC 10-K filing language. Examples:
-
-    User asks: "What are Apple's China risks?"
-    Rewrite to: "The Company's operations in the People's Republic of China
-    are subject to political, regulatory, and economic risks including
-    potential restrictions on technology transfers and trade."
-
-    User asks: "How does Tesla describe competition?"
-    Rewrite to: "The Company faces intense competition from established
-    automotive manufacturers and new market entrants in the electric
-    vehicle industry which may adversely affect pricing and market share."
-
-    Always pass the formal rewritten version as the query parameter.
+    into formal SEC filing language. Examples:
+    ...
     """
     try:
         chunks = pipeline.search_filing(
             cik_padded=cik_padded,
             query=query,
-            filing_type=filing_type,
+            filing_types=filing_types,
             years=years,
+            quarters=quarters,
         )
 
         if not chunks:
             return (
-                f"No relevant passages found in {filing_type} filings for CIK {cik_padded}.\n"
-                f"The filing may not be available on EDGAR or the sections could not be extracted.\n"
+                f"No relevant passages found in {', '.join(filing_types)} filings for CIK {cik_padded}.\n"
+                f"The filings may not be available on EDGAR or the sections could not be extracted.\n"
                 f"Try get_filings() to check what filings are available."
             )
 

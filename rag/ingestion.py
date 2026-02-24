@@ -82,32 +82,34 @@ def ingest_filing(cik_padded: str, accession_number: str,
 
 
 def ingest_recent_filings(cik_padded: str, years: int = 3,
-                           filing_type: str = "10-K") -> list:
+                           filing_types: list[str] = ["10-K", "10-Q"]) -> list:
     """
-    Ingest the last N annual filings for a company.
+    Ingest the last N annual and quarterly filings for a company.
     Called by pipeline.py when a company hasn't been ingested yet.
     """
     raw_submissions = client.get_company_submissions(cik_padded)
     company_name = raw_submissions.get("name", f"CIK {cik_padded}")
-    filings = parser.parse_filings_list(raw_submissions, filing_type, limit=years)
 
     results = []
-    for filing in filings:
-        accession = filing.get("accession_number", "")
-        date = filing.get("date", "")
-        year = date[:4] if date else "unknown"
+    for filing_type in filing_types:
+        filings = parser.parse_filings_list(raw_submissions, filing_type, limit=years)
 
-        if not accession:
-            continue
+        for filing in filings:
+            accession = filing.get("accession_number", "")
+            date = filing.get("date", "")
+            year = date[:4] if date else "unknown"
 
-        result = ingest_filing(
-            cik_padded=cik_padded,
-            accession_number=accession,
-            company_name=company_name,
-            year=year,
-            filing_type=filing_type,
-        )
-        results.append(result)
+            if not accession:
+                continue
+
+            result = ingest_filing(
+                cik_padded=cik_padded,
+                accession_number=accession,
+                company_name=company_name,
+                year=year,
+                filing_type=filing_type,
+            )
+            results.append(result)
 
     return results
 

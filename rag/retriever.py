@@ -44,22 +44,23 @@ TOP_K = 5
 # Main entry point
 # ─────────────────────────────────────────────
 
-def retrieve(query: str, cik: str, years: list) -> list:
+def retrieve(query: str, cik: str, years: list,
+             filing_types: list[str] = ["10-K", "10-Q"],
+             quarters: list[str] = None) -> list:
     """
     Full retrieval pipeline per PIPELINE.md:
     1. HyDE  — expand query into SEC filing language (local, no API)
-    2. MMR   — retrieve 20 diverse candidates across years
+    2. MMR   — retrieve 20 diverse candidates across years and filing types
     3. CRAG  — self-critique, filter low quality chunks
     4. Rerank — cross-encoder precision scoring, return top 5
     """
     expanded_query = hyde_expand(query)
-    candidates = retrieve_mmr(expanded_query, cik, years)
+    candidates = retrieve_mmr(expanded_query, cik, years, filing_types, quarters, n_results=20)
     if not candidates:
         return []
     filtered = crag_filter(query, candidates)
     final = rerank(query, filtered)
     return final
-
 
 # ─────────────────────────────────────────────
 # 5a — HyDE (local, no API key needed)
@@ -144,22 +145,39 @@ def hyde_expand(query: str) -> str:
 # ─────────────────────────────────────────────
 
 def retrieve_mmr(expanded_query: str, cik: str, years: list,
+                 filing_types: list[str] = ["10-K", "10-Q"],
+                 quarters: list[str] = None,
                  n_results: int = 20) -> list:
     """
-    Retrieve diverse chunks using MMR across all specified years.
-    Searches each year separately then combines for cross-year diversity.
+    Retrieve diverse chunks using MMR across all specified years, filing types, and quarters.
+    Searches each year, filing type, and quarter separately then combines for diversity.
     """
     all_candidates = []
 
     for year in years:
-        year_results = store.search_mmr(
-            query=expanded_query,
-            cik=cik,
-            year=year,
-            n_results=10,
-            mmr_lambda=0.7,
-        )
-        all_candidates.extend(year_results)
+        for filing_type in filing_types:
+            if filing_type == "10-K":
+                year_results = store.search_mmr(
+                    query=expanded_query,
+                    cik=cik,
+                    year=year,
+                    filing_type=filing_type,
+                    n_results=10,
+                    mmr_lambda=0.7,
+                )
+                all_candidates.extend(year_results)
+            elif filing_type == "10-Q" and quarters:
+                for quarter in quarters:
+                    quarter_results = store.search_mmr(
+                        query=expanded_query,
+                        cik=cik,
+                        year=year,
+                        quarter=quarter,
+                        filing_type=filing_type,
+                        n_results=10,
+                        mmr_lambda=0.7,
+                    )
+                    all_candidates.extend(quarter_results)
 
     if not all_candidates:
         all_candidates = store.search_mmr(

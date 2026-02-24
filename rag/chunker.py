@@ -51,6 +51,7 @@ def chunk_filing(ingested: dict) -> list[dict]:
     company = ingested.get("company", "")
     cik = ingested.get("cik", "")
     year = ingested.get("year", "")
+    quarter = ingested.get("quarter", "")
     filing_type = ingested.get("filing_type", "10-K")
     sections = ingested.get("sections", {})
 
@@ -66,6 +67,7 @@ def chunk_filing(ingested: dict) -> list[dict]:
             company=company,
             cik=cik,
             year=year,
+            quarter=quarter,
             filing_type=filing_type,
         )
         all_chunks.extend(section_chunks)
@@ -90,7 +92,7 @@ def chunk_filings(ingested_list: list[dict]) -> list[dict]:
 # ─────────────────────────────────────────────
 
 def _chunk_section(text: str, section_name: str, company: str,
-                   cik: str, year: str, filing_type: str) -> list[dict]:
+                   cik: str, year: str, quarter: str, filing_type: str) -> list[dict]:
     """
     Split a single section into overlapping word-based chunks.
     Each chunk gets full metadata + parent section text.
@@ -115,6 +117,7 @@ def _chunk_section(text: str, section_name: str, company: str,
             "company": company,
             "cik": cik,
             "year": year,
+            "quarter": quarter,
             "filing_type": filing_type,
             "section": section_name,
             "chunk_id": chunk_id,
