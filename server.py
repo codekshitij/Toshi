@@ -131,7 +131,7 @@ def search_filing(cik_padded: str, query: str,
 
     Pass the rewritten formal query as the query parameter.
     """
-    return _search_filing(cik_padded, query, filing_type, years)
+    return _search_filing(cik_padded, query, filing_types, years, quarters)
 
 if __name__ == "__main__":
     print("Starting SEC EDGAR MCP Server...", file=sys.stderr)
